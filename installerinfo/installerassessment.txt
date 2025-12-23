@@ -1,0 +1,252 @@
+SyMoNeuRaL_Christmas — Local “all-in-one” (Caddy + PHP-FastCGI + Python heartbeat) + optional EXE launcher
+================================================================================
+
+What this project does
+----------------------
+- Serves the frontend (HTML/PHP) with Caddy on http://localhost:8080
+- Runs PHP via php-cgi (FastCGI) so /frontend/index.php and /frontend/api/*.php work
+- Runs the Python backend heartbeat client (backend/symonstat.py) which POSTs to:
+  http://localhost:8080/api/heartbeat.php
+- The status page polls /api/status.php to display COD / VS Code + heartbeat freshness
+
+Repo layout (your current structure)
+------------------------------------
+Symoneural_Christmas/
+  backend/
+    symonstat.py
+  frontend/
+    index.html
+    index.php
+    api/
+      heartbeat.php
+      status.php
+      wishlist.php
+    data/
+      heartbeat.json
+      wishlist.sqlite
+  Caddyfile
+  launcher.py
+  SyMoNeuRaL_Christmas_Launcher.spec
+  dist/
+    SyMoNeuRaL_Christmas_Launcher.exe
+  build/                          (pyinstaller build artifacts)
+  Legacy_pre_exe/
+    start_symoneural.bat
+    stop_symoneural.bat
+  Optional_Dev_Only/
+    start_symoneural_exe_build.bat
+  run/                            (optional PID files, etc)
+  logs/                           (optional logs)
+
+Why your start_symoneural.bat “changed” / which file matters
+------------------------------------------------------------
+- start_symoneural.bat = the “manual/dev” starter script (pre-EXE style).
+- start_symoneural_exe_build.bat = a helper script to BUILD the EXE (optional).
+- Your actual EXE build that succeeded was done by running PyInstaller directly:
+  python -m PyInstaller --onefile --name SyMoNeuRaL_Christmas_Launcher launcher.py
+- So: yes, the exe_build.bat is “for later / convenience”. It’s not required if
+  you prefer running the PyInstaller command manually.
+
+Prereqs we installed (Windows)
+------------------------------
+1) Caddy installed and available in PATH:
+   - Verify:
+     (PowerShell)  caddy version
+
+2) PHP installed (you used the zip build) and added to PATH:
+   - Example install folder you used:
+     C:\PHP\
+   - Verify:
+     (PowerShell)  php -v
+     (PowerShell)  where php
+     (PowerShell)  where php-cgi
+
+3) Python 3.10 installed (you are using Python310):
+   - Verify:
+     (PowerShell)  python --version
+     (PowerShell)  python -c "import sys; print(sys.executable)"
+
+4) Python packages:
+   - Required by symonstat.py:
+     psutil, requests
+   - Install:
+     (PowerShell)  python -m pip install --upgrade pip
+     (PowerShell)  python -m pip install psutil requests
+
+Recommended: requirements.txt
+-----------------------------
+Create a file at the repo root named requirements.txt:
+
+  psutil
+  requests
+  pyinstaller
+
+Then install everything with:
+  (PowerShell)  python -m pip install -r requirements.txt
+
+Running the stack (manual, 3 terminals)
+---------------------------------------
+Open 3 terminals (or tabs). Don’t close them while running.
+
+A) Start PHP FastCGI
+   (PowerShell)
+   php-cgi -b 127.0.0.1:9000
+
+B) Start Caddy (from repo root where Caddyfile is)
+   (PowerShell)
+   cd C:\Users\Garrett\Symoneural_Christmas
+   caddy run
+
+C) Start Python backend
+   (PowerShell)
+   cd C:\Users\Garrett\Symoneural_Christmas\backend
+   python symonstat.py
+
+Open:
+- Site:   http://localhost:8080/
+- Status: http://localhost:8080/api/status.php
+
+If you see “offline (no heartbeat)”
+-----------------------------------
+That means the frontend is up, but the backend isn’t successfully POSTing.
+
+Checklist:
+- Is symonstat.py running continuously (no crash)?
+- Do you have both deps installed?
+  (PowerShell) python -c "import psutil,requests; print('ok')"
+- Is PHP FastCGI actually running on 127.0.0.1:9000?
+- Is heartbeat.php located at:
+  frontend/api/heartbeat.php
+  and reachable at:
+  http://localhost:8080/api/heartbeat.php
+
+About Anaconda / environments
+-----------------------------
+- You do NOT have to use Anaconda.
+- You *only* need to use an env if your packages are installed somewhere else.
+- Right now your screenshot showed Python310 at:
+  C:\Users\Garrett\AppData\Local\Programs\Python\Python310\python.exe
+  That’s fine — just install psutil/requests into that same Python.
+
+If you *want* a venv (recommended long-term)
+--------------------------------------------
+From repo root:
+  (PowerShell)
+  python -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+  python -m pip install -r requirements.txt
+
+Then run everything using that activated shell.
+
+Caddyfile notes (what matters)
+------------------------------
+Your Caddyfile must:
+- Serve the frontend folder as the site root
+- Route *.php to php-cgi at 127.0.0.1:9000
+
+(Your current setup is working, since the site loads and /api/status.php works.)
+
+Building the EXE launcher (what you did)
+----------------------------------------
+From repo root:
+  (PowerShell)
+  python -m pip install pyinstaller
+  python -m PyInstaller --onefile --name SyMoNeuRaL_Christmas_Launcher launcher.py
+
+Output:
+  dist\SyMoNeuRaL_Christmas_Launcher.exe
+
+What the EXE is intended to do
+------------------------------
+- Start php-cgi
+- Start caddy
+- Start the python backend
+- Optionally open the browser to http://localhost:8080
+
+NOTE: The EXE still relies on external installs unless you bundle them:
+- Caddy binary must exist (or you ship it)
+- PHP (php-cgi.exe) must exist (or you ship it)
+- If you want “true portable”, you package caddy.exe + php-cgi.exe alongside.
+
+Simple “portable” folder idea
+-----------------------------
+Symoneural_Christmas_Portable/
+  SyMoNeuRaL_Christmas_Launcher.exe
+  caddy.exe
+  php/
+    php-cgi.exe
+    php.ini
+  app/
+    (your repo contents)
+
+Then launcher starts local copies instead of relying on PATH.
+
+Installer (what you asked for)
+==============================
+If you want a real Windows installer (Next/Next/Finish), use ONE of these:
+- Inno Setup (easiest, very popular)
+- NSIS (powerful)
+- WiX (most “enterprise”, more complex)
+
+Fast path: Inno Setup (recommended)
+-----------------------------------
+1) Install Inno Setup.
+2) Build your EXE (already done).
+3) Make a folder you want to install:
+   - Include:
+     - dist\SyMoNeuRaL_Christmas_Launcher.exe
+     - (optionally) bundled caddy.exe + PHP folder if you want zero-deps
+     - your frontend/backend files if your launcher expects them at runtime
+
+Example Inno Setup script (save as installer.iss)
+-------------------------------------------------
+[Setup]
+AppName=SyMoNeuRaL Christmas
+AppVersion=1.0.0
+DefaultDirName={pf}\SyMoNeuRaL_Christmas
+DefaultGroupName=SyMoNeuRaL Christmas
+OutputBaseFilename=SyMoNeuRaL_Christmas_Installer
+Compression=lzma
+SolidCompression=yes
+
+[Files]
+; Main launcher EXE
+Source: "dist\SyMoNeuRaL_Christmas_Launcher.exe"; DestDir: "{app}"; Flags: ignoreversion
+
+; App files (adjust if your launcher needs them)
+Source: "backend\*"; DestDir: "{app}\backend"; Flags: recursesubdirs createallsubdirs
+Source: "frontend\*"; DestDir: "{app}\frontend"; Flags: recursesubdirs createallsubdirs
+Source: "Caddyfile"; DestDir: "{app}"; Flags: ignoreversion
+
+; OPTIONAL: bundle Caddy + PHP so users don’t install anything
+; Source: "vendor\caddy.exe"; DestDir: "{app}\vendor"; Flags: ignoreversion
+; Source: "vendor\php\*"; DestDir: "{app}\vendor\php"; Flags: recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\SyMoNeuRaL Christmas"; Filename: "{app}\SyMoNeuRaL_Christmas_Launcher.exe"
+Name: "{commondesktop}\SyMoNeuRaL Christmas"; Filename: "{app}\SyMoNeuRaL_Christmas_Launcher.exe"; Tasks: desktopicon
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a desktop icon"; GroupDescription: "Additional icons:"
+
+[Run]
+Filename: "{app}\SyMoNeuRaL_Christmas_Launcher.exe"; Description: "Launch SyMoNeuRaL Christmas"; Flags: nowait postinstall skipifsilent
+
+4) Compile installer.iss in Inno Setup → you get an installer .exe.
+
+What I recommend you do next (so it’s clean)
+--------------------------------------------
+1) Keep:
+   - Legacy_pre_exe/start_symoneural.bat + stop_symoneural.bat (manual fallback)
+   - Optional_Dev_Only/start_symoneural_exe_build.bat (optional helper)
+   - launcher.py + dist/SyMoNeuRaL_Christmas_Launcher.exe (your main launch path)
+
+2) Add:
+   - requirements.txt
+   - A vendor/ folder IF you want “no external installs”:
+     vendor/caddy.exe
+     vendor/php/php-cgi.exe etc.
+
+3) Build an Inno Setup installer that drops everything in Program Files and makes a shortcut.
+
+Done.

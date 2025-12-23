@@ -1,0 +1,210 @@
+SyMoNeuRaL_Christmas — Option B (Zero-Dependency Portable + Installer)
+
+Goal
+- End user double-clicks ONE thing and it “just runs”
+- No XAMPP
+- No system PHP install
+- No Python install needed for the backend heartbeat
+- Everything lives inside the project folder (or inside the EXE)
+
+What we built
+- Caddy serves the frontend (HTML/PHP)
+- PHP runs via php-cgi (FastCGI on 127.0.0.1:9000)
+- Python backend “symonstat” posts heartbeat to /api/heartbeat.php
+- A Launcher EXE starts all of it
+
+Current folder layout (yours)
+SyMoNeuRaL_Christmas/
+  backend/
+    symonstat.py
+  frontend/
+    index.html
+    index.php
+    api/
+      heartbeat.php
+      status.php
+      wishlist.php
+    data/
+      heartbeat.json
+      wishlist.sqlite
+  Caddyfile
+  launcher.py
+  dist/
+    SyMoNeuRaL_Christmas_Launcher.exe
+  Legacy_pre_exe/
+    start_symoneural.bat
+    stop_symoneural.bat
+  Optional_Dev_Only/
+    start_symoneural_exe_build.bat
+  build/  (PyInstaller build output)
+  logs/   (optional)
+  run/    (we’ll use this for the portable binaries)
+
+Important clarification (why you saw 2 BAT files)
+- start_symoneural.bat = “run it in dev” (manual/legacy)
+- start_symoneural_exe_build.bat = “build the EXE later” helper (dev-only)
+- Your actual EXE was built with:
+  python -m PyInstaller --onefile --name SyMoNeuRaL_Christmas_Launcher launcher.py
+  …so yes, we didn’t NEED the exe_build.bat to build it. It’s optional.
+
+============================================================
+OPTION B: TRUE ZERO-DEPENDENCY (Portable)
+============================================================
+
+1) Put the runtime binaries INSIDE the repo (so no installs needed)
+Create these folders:
+  run/bin/
+  run/php/
+
+Copy in:
+  run/bin/caddy.exe
+  run/php/  (ENTIRE PHP folder contents from your extracted PHP zip)
+            Must include php-cgi.exe plus all the .dll files
+
+Recommended PHP folder example:
+  run/php/php-cgi.exe
+  run/php/php.exe
+  run/php/php.ini-development (optional)
+  run/php/*.dll (icu*, libssl*, etc)
+  run/php/ext/* (optional)
+
+2) Make launcher.py use RELATIVE PATHS (not C:\PHP, not system paths)
+Launcher should reference:
+  caddy:   <project>/run/bin/caddy.exe
+  php-cgi: <project>/run/php/php-cgi.exe
+
+3) Make the Python backend NOT require Python installed
+Two ways:
+
+B1 (best): Embed backend into the Launcher EXE
+- Instead of “starting python backend\symonstat.py”, the launcher imports it and runs it in a thread.
+- That means the launcher EXE is the only “python runtime” needed.
+
+B2 (acceptable): Ship a portable Python
+- Bundle a portable Python distribution and run symonstat.py from it.
+- (More moving parts; B1 is cleaner.)
+
+We’re doing B1.
+
+4) Build the onefile EXE AND bundle Caddy + PHP inside it (so even run/ isn’t required)
+From the repo root:
+
+(Use Bash in VS Code terminal)
+  cd ~/SyMoNeuRaL_Christmas
+
+Install build deps (dev machine only):
+  python -m pip install --upgrade pip
+  python -m pip install pyinstaller
+  python -m pip install -r backend/requirements.txt
+
+Build EXE (includes Caddy + PHP files):
+NOTE: PyInstaller “onefile” extracts bundled files to a temp folder at runtime.
+You must add-binary/add-data so the EXE carries everything.
+
+Example command (edit paths if needed):
+  python -m PyInstaller --onefile --name SyMoNeuRaL_Christmas_Launcher ^
+    --add-binary "run/bin/caddy.exe;bin" ^
+    --add-data   "run/php;php" ^
+    --add-data   "frontend;frontend" ^
+    launcher.py
+
+Result:
+  dist/SyMoNeuRaL_Christmas_Launcher.exe
+
+5) Running (end user)
+Double-click:
+  dist/SyMoNeuRaL_Christmas_Launcher.exe
+
+Then open:
+  http://localhost:8080
+
+============================================================
+Runtime ports / URLs
+============================================================
+- Site:          http://localhost:8080
+- Status API:    http://localhost:8080/api/status.php
+- Heartbeat API: http://localhost:8080/api/heartbeat.php
+- PHP-FastCGI:   127.0.0.1:9000
+
+============================================================
+Backend Python requirements (for dev builds)
+============================================================
+backend/requirements.txt should include:
+  psutil
+  requests
+
+Install:
+  python -m pip install -r backend/requirements.txt
+
+============================================================
+Caddyfile notes
+============================================================
+Your Caddyfile should:
+- serve frontend as root
+- route /api/* to php_fastcgi 127.0.0.1:9000
+- file_server for static
+
+Example shape (conceptual):
+  :8080 {
+    root * ./frontend
+    php_fastcgi 127.0.0.1:9000
+    file_server
+  }
+
+============================================================
+Installer (wrap the zero-dependency EXE)
+============================================================
+If you want a “real installer” (Start Menu shortcut, Desktop shortcut):
+- Keep Option B portable EXE as the payload
+- Use an installer builder ONLY for packaging (end user still installs “your app”, not PHP/Caddy)
+
+Two common choices:
+- Inno Setup (simple)
+- NSIS (more configurable)
+
+Installer should:
+- copy SyMoNeuRaL_Christmas_Launcher.exe into Program Files
+- optionally add an Uninstall entry
+- create shortcuts
+- (optional) add a “Stop” shortcut if your launcher supports stop
+
+============================================================
+Troubleshooting quick hits
+============================================================
+- “offline (no heartbeat)”:
+  - launcher didn’t start backend thread OR token mismatch OR heartbeat.php not reachable
+  - verify /api/heartbeat.php exists and is in frontend/api/
+
+- “No input file specified.”:
+  - php_fastcgi is running but root/path mismatch
+  - check Caddy root points to ./frontend and that index.php exists if you rely on it
+
+- PHP works in CLI but not via Caddy:
+  - ensure php-cgi is the one launched
+  - ensure it’s listening on 127.0.0.1:9000
+
+============================================================
+What to delete / keep (your repo)
+============================================================
+KEEP:
+- launcher.py
+- Caddyfile
+- backend/, frontend/
+- dist/ (contains the exe)
+- Optional_Dev_Only/ (fine to keep; dev helper)
+- Legacy_pre_exe/ (optional; can keep as reference)
+
+SAFE TO DELETE BEFORE SHIPPING:
+- build/ (PyInstaller build artifacts)
+- *.spec (optional; keep if you want reproducible builds)
+
+============================================================
+Summary
+============================================================
+Option B = “No installs for the user”.
+We bundle:
+- Caddy
+- PHP (php-cgi + dlls)
+- Frontend files
+- Python backend logic embedded into the launcher EXE
+User runs ONE EXE, visits localhost:8080.

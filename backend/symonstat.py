@@ -13,7 +13,7 @@ TOKEN = "2671bfae89d86d8489401f888358e4bfa845ba85f26444e3a3e55e4702547041"
 
 # If you want to override without editing the file:
 #   set SYMONEURAL_ENDPOINT=http://symoneural.com/api/heartbeat.php
-ENDPOINT = os.environ.get("SYMONEURAL_ENDPOINT", "http://symoneural.com/api/heartbeat.php")
+ENDPOINT = os.environ.get("SYMONEURAL_ENDPOINT", "http://localhost:8080/api/heartbeat.php")
 
 COD_PROCS = {"cod.exe", "codhq.exe", "modernwarfare.exe", "codsp.exe"}
 VSC_PROCS = {"code.exe"}
