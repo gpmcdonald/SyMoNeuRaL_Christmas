@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SyMoNeuRaL Status</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --text: #e8edf7;
+      --muted: rgba(232,237,247,.65);
+      --stroke: rgba(255,255,255,.10);
+      --warn: #f1c40f;
+      --good: #2ecc71;
+      --bad: #ff4d4d;
+      --card: rgba(16,24,38,.72);
+      --glass: blur(8px);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font: 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+      background: radial-gradient(1200px 700px at 30% -10%, #152238 0%, var(--bg) 55%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 28px 22px 34px;
+    }
+
+    h1 {
+      margin: 6px 0 8px;
+      font-size: 44px;
+      letter-spacing: .2px;
+    }
+
+    .sub {
+      margin: 0 0 26px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--stroke);
+      background: var(--card);
+      border-radius: 999px;
+      min-width: 240px;
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset;
+    }
+
+    .pill.good { border-color: rgba(46,204,113,.35); }
+    .pill.bad  { border-color: rgba(255,77,77,.35); }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--warn);
+      box-shadow: 0 0 0 3px rgba(241,196,15,.15);
+      flex: 0 0 auto;
+    }
+
+    .good .dot {
+      background: var(--good);
+      box-shadow: 0 0 0 3px rgba(46,204,113,.15);
+    }
+
+    .bad .dot {
+      background: var(--bad);
+      box-shadow: 0 0 0 3px rgba(255,77,77,.15);
+    }
+
+    .label {
+      color: var(--muted);
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .value {
+      font-weight: 800;
+      font-size: 18px;
+      margin-left: auto;
+      letter-spacing: .5px;
+    }
+
+    .note {
+      margin: 18px 0 10px;
+      text-align: center;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .bayley {
+      margin: 18px 0 6px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: 1px solid var(--stroke);
+      background: rgba(16,24,38,.78);
+      color: #cfe0ff;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 800;
+      letter-spacing: .3px;
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.22);
+      background: rgba(20,32,58,.80);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .sleepy {
+      display: none;
+      margin: 14px auto 0;
+      width: fit-content;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      font-size: 13px;
+      color: rgba(232,237,247,.75);
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* --------- Page switcher --------- */
+    .hidden { display: none !important; }
+
+    /* --------- Bayley Page --------- */
+    #bayleyPage {
+      min-height: calc(100vh - 56px);
+      padding: 32px 18px 60px;
+      border-radius: 26px;
+      background:
+        radial-gradient(900px 520px at 50% -10%, rgba(255,255,255,.18), transparent 55%),
+        linear-gradient(180deg, rgba(10, 14, 24, .65), rgba(10, 14, 24, .88)),
+        url("https://images.unsplash.com/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=1600&q=60");
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.05) inset;
+    }
+
+    #bayleyInner {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .bayleyTitle {
+      margin: 6px 0 18px;
+      font-size: 42px;
+      text-align: center;
+      text-shadow: 0 8px 28px rgba(0,0,0,.45);
+    }
+
+    .wishBox {
+      margin: 0 auto;
+      max-width: 740px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(16,24,38,.78);
+      border-radius: 22px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .wishRow {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #wishInput {
+      flex: 1 1 360px;
+      min-width: 260px;
+      font-size: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      outline: none;
+      background: rgba(255,255,255,.94);
+      color: #111827;
+    }
+
+    #wishInput::placeholder {
+      color: rgba(17,24,39,.45);
+    }
+
+    .btnPrimary {
+      border-color: rgba(46,204,113,.35);
+      color: #dfffe9;
+      background: rgba(46,204,113,.20);
+      min-width: 140px;
+    }
+
+    .btnPrimary:hover {
+      border-color: rgba(46,204,113,.55);
+      background: rgba(46,204,113,.28);
+    }
+
+    .btnGhost {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border-color: rgba(255,255,255,.16);
+      color: rgba(232,237,247,.92);
+      background: rgba(255,255,255,.08);
+    }
+
+    #wishList {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .wishItem {
+      padding: 14px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.96);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .wishText {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .wishMeta {
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 520px) {
+      h1 { font-size: 34px; }
+      .bayleyTitle { font-size: 32px; }
+      .pill { min-width: 100%; }
+      .btn { width: 100%; justify-content: center; }
+      .btnPrimary { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap" id="mainPage">
+    <h1>SyMoNeuRaL Status</h1>
+    <p class="sub">Live heartbeat from <code>/api/status.php</code> (updates every 5s)</p>
+
+    <div class="row">
+      <div id="codCard" class="pill bad">
+        <span class="dot"></span>
+        <span class="label">COD</span>
+        <span id="codVal" class="value">OFF</span>
+      </div>
+
+      <div id="vsCard" class="pill bad">
+        <span class="dot"></span>
+        <span class="label">VS Code</span>
+        <span id="vsVal" class="value">OFF</span>
+      </div>
+    </div>
+
+    <div id="ravenNote" class="note">
+      💜 Hi Raven — wherever you are, I am always thinking about you.
+    </div>
+
+    <div class="bayley">
+      <button id="openBayley" class="btn">🎅🎁 Bayley’s Christmas Page — CLICK ME 🎄😊</button>
+    </div>
+
+    <div id="sleepy" class="sleepy">😴 I’m probably asleep lol</div>
+
+    <div class="footer" id="meta">last update:</div>
+  </div>
+
+  <!-- Bayley Page -->
+  <div id="bayleyPage" class="hidden">
+    <div id="bayleyInner">
+      <div class="bayleyTitle">🎄 Bayley’s Christmas Wishlist 🎁</div>
+
+      <div class="wishBox">
+        <div class="wishRow">
+          <input id="wishInput" placeholder="Type your Christmas wish..." maxlength="120" />
+          <button id="addWish" class="btn btnPrimary">Add 🎁</button>
+        </div>
+
+        <ul id="wishList"></ul>
+
+        <div style="text-align:center;">
+          <button id="backBtn" class="btn btnGhost">⬅️ Back</button>
+        </div>
+      </div>
+
+      <div class="footer" id="wishMeta">wishlist:</div>
+    </div>
+  </div>
+
+  <script>
+    const codCard = document.getElementById("codCard");
+    const vsCard  = document.getElementById("vsCard");
+    const codVal  = document.getElementById("codVal");
+    const vsVal   = document.getElementById("vsVal");
+    const meta    = document.getElementById("meta");
+    const sleepy  = document.getElementById("sleepy");
+
+    function setState(card, el, on) {
+      card.classList.toggle("good", !!on);
+      card.classList.toggle("bad", !on);
+      el.textContent = on ? "ON" : "OFF";
+    }
+
+    async function poll() {
+      try {
+        const r = await fetch("/api/status.php", { cache: "no-store" });
+        const j = await r.json();
+
+        // status.php returns: live, cod, vscode, age_s, note
+        setState(codCard, codVal, j.cod);
+        setState(vsCard,  vsVal,  j.vscode);
+
+        const live = !!j.live;
+        const ageS = Number(j.age_s ?? 0);
+
+        meta.textContent = live ? `last update: ${ageS}s ago` : "last update: offline (no heartbeat)";
+
+        // sleepy message when BOTH are off (and we have a heartbeat)
+        if (live && !j.cod && !j.vscode) {
+          sleepy.style.display = "block";
+        } else {
+          sleepy.style.display = "none";
+        }
+      } catch (e) {
+        meta.textContent = "last update: error fetching status";
+      }
+    }
+
+    poll();
+    setInterval(poll, 5000);
+
+    // ---------- Page switching ----------
+    const mainPage  = document.getElementById("mainPage");
+    const bayleyPage = document.getElementById("bayleyPage");
+
+    document.getElementById("openBayley").addEventListener("click", () => {
+      mainPage.classList.add("hidden");
+      bayleyPage.classList.remove("hidden");
+      loadWishes();
+    });
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      bayleyPage.classList.add("hidden");
+      mainPage.classList.remove("hidden");
+    });
+
+    // ---------- Wishlist ----------
+    const wishInput = document.getElementById("wishInput");
+    const wishList  = document.getElementById("wishList");
+    const wishMeta  = document.getElementById("wishMeta");
+
+    function esc(s) {
+      return (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    }
+
+    function render(items) {
+      wishList.innerHTML = "";
+      items.forEach(it => {
+        const li = document.createElement("li");
+        li.className = "wishItem";
+        li.innerHTML = `<span class="wishText">🎁 ${esc(it.name)}</span><span class="wishMeta">${esc(it.created_at || "")}</span>`;
+        wishList.appendChild(li);
+      });
+      wishMeta.textContent = `wishlist: ${items.length} item(s)`;
+    }
+
+    async function loadWishes() {
+      try {
+        const r = await fetch("/api/wishlist.php", { cache: "no-store" });
+        const j = await r.json();
+        render(j.items || []);
+      } catch (e) {
+        wishMeta.textContent = "wishlist: error loading";
+      }
+    }
+
+    async function addWish() {
+      const text = (wishInput.value || "").trim();
+      if (!text) return;
+
+      try {
+        const r = await fetch("/api/wishlist.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: text })
+        });
+        const j = await r.json();
+        if (j && j.ok) {
+          wishInput.value = "";
+          await loadWishes();
+        } else {
+          wishMeta.textContent = "wishlist: could not add";
+        }
+      } catch (e) {
+        wishMeta.textContent = "wishlist: error adding";
+      }
+    }
+
+    document.getElementById("addWish").addEventListener("click", addWish);
+    wishInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addWish();
+    });
+  </script>
+</body>
+</html>

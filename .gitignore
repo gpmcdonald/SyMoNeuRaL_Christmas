@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.env
+
+# SQLite databases
+*.sqlite
+*.db
+
+# Runtime files
+frontend/data/*.json
+
+# OS junk
+.DS_Store
+Thumbs.db

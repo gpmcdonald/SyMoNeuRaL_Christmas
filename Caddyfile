@@ -1,0 +1,5 @@
+:8080 {
+  root * "C:\Users\Garrett\SyMoNeuRaL_Christmas\frontend"
+  php_fastcgi 127.0.0.1:9000
+  file_server
+}
