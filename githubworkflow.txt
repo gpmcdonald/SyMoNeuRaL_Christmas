@@ -1,0 +1,116 @@
+SyMoNeuRaL GitHub Workflow
+=========================
+
+This is the EXACT workflow you should follow every time.
+
+------------------------------------------------
+BASIC RULES
+------------------------------------------------
+
+• NEVER commit:
+  - build/
+  - dist/
+  - *.json runtime data
+  - .cloudflared credentials
+  - sqlite runtime databases
+
+• ALWAYS commit:
+  - backend/
+  - frontend/
+  - Caddyfile
+  - launcher.py
+  - README.txt
+
+------------------------------------------------
+CHECK STATUS
+------------------------------------------------
+
+git status
+
+------------------------------------------------
+ADD FILES
+------------------------------------------------
+
+Add everything allowed:
+git add .
+
+Add single file:
+git add backend/symonstat.py
+
+------------------------------------------------
+COMMIT
+------------------------------------------------
+
+git commit -m "Short clear message describing what changed"
+
+Examples:
+git commit -m "Fix heartbeat API and stabilize Python backend"
+git commit -m "Add Cloudflare Tunnel config and docs"
+
+------------------------------------------------
+PUSH TO GITHUB
+------------------------------------------------
+
+git push origin main
+
+------------------------------------------------
+PULL LATEST CHANGES
+------------------------------------------------
+
+Before starting work on another machine:
+git pull origin main
+
+------------------------------------------------
+FETCH (SAFE CHECK)
+------------------------------------------------
+
+Fetch without merging:
+git fetch
+
+------------------------------------------------
+UNDO LOCAL CHANGES (DANGEROUS)
+------------------------------------------------
+
+Undo a file:
+git restore frontend/index.php
+
+Undo everything not committed:
+git restore .
+
+------------------------------------------------
+REMOVE FILE FROM GIT BUT KEEP LOCAL
+------------------------------------------------
+
+git rm --cached frontend/api/data/heartbeat.json
+git commit -m "Ignore runtime API data"
+
+------------------------------------------------
+DELETE FILE EVERYWHERE
+------------------------------------------------
+
+git rm frontend/oldfile.php
+git commit -m "Remove deprecated file"
+
+------------------------------------------------
+UPDATE .gitignore
+------------------------------------------------
+
+Edit .gitignore
+Then run:
+git add .gitignore
+git commit -m "Update gitignore"
+git push origin main
+
+------------------------------------------------
+CHECK CLEAN STATE
+------------------------------------------------
+
+git status
+
+Expected:
+"nothing to commit, working tree clean"
+
+------------------------------------------------
+DONE
+------------------------------------------------
+If GitHub is green, you're safe.
